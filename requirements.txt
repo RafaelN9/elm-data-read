@@ -1,2 +1,4 @@
 obd==0.7.1
 pint==0.7.*
+flask==0.10.1
+jinja2
