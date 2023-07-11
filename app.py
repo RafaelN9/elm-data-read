@@ -26,16 +26,20 @@ def stream_data():
         'Load %': commands.ENGINE_LOAD,
         'Intake Pressure': commands.INTAKE_PRESSURE,
     }
+    try:
 
-    # Connect to the OBD-II adapter
-    connection = OBD(port)
-    if connection.status() == OBDStatus.NOT_CONNECTED:
+        # Connect to the OBD-II adapter
+        connection = OBD(port)
+        if connection.status() == OBDStatus.NOT_CONNECTED:
+            print("Failed to connect to the OBD-II adapter")
+            exit()
+        if connection.status() == OBDStatus.CAR_CONNECTED:
+            print("The OBD-II adapter has established a connection with the vehicle!\nEntering execution mode...")
+            time.sleep(1)  # Wait for the vehicle to respond
+    except:
         print("Failed to connect to the OBD-II adapter")
         exit()
-    if connection.status() == OBDStatus.CAR_CONNECTED:
-        print("The OBD-II adapter has established a connection with the vehicle!\nEntering execution mode...")
-        time.sleep(1)  # Wait for the vehicle to respond
-    
+
     def generate_data():
         def run_command(connection, command):
             if connection.supports(command):
@@ -43,70 +47,74 @@ def stream_data():
             return None
 
         while True:
-            # Get the data from the OBD-II adapter
-            run_time = run_command(connection, pid_mapping['Run Time'])
-            throttle = run_command(connection, pid_mapping['Throttle'])
-            fuel_type = run_command(connection, pid_mapping['Fuel Type'])
-            air_intake = run_command(connection, pid_mapping['MAF'])
-            if not air_intake:
-                air_intake = run_command(connection, pid_mapping['Intake Pressure'])
-            rpm = run_command(connection, pid_mapping['RPM'])
-            speed = run_command(connection, pid_mapping['Speed'])
-            ethanol = run_command(connection, pid_mapping['Ethanol %'])
-            fuel_rate = run_command(connection, pid_mapping['Fuel Rate'])
-            load = run_command(connection, pid_mapping['Load %'])
+            try:
+                # Get the data from the OBD-II adapter
+                run_time = run_command(connection, pid_mapping['Run Time'])
+                throttle = run_command(connection, pid_mapping['Throttle'])
+                fuel_type = run_command(connection, pid_mapping['Fuel Type'])
+                air_intake = run_command(connection, pid_mapping['MAF'])
+                if not air_intake:
+                    air_intake = run_command(connection, pid_mapping['Intake Pressure'])
+                rpm = run_command(connection, pid_mapping['RPM'])
+                speed = run_command(connection, pid_mapping['Speed'])
+                ethanol = run_command(connection, pid_mapping['Ethanol %'])
+                fuel_rate = run_command(connection, pid_mapping['Fuel Rate'])
+                load = run_command(connection, pid_mapping['Load %'])
 
-            # Calculate litres per hour using air intakeelse:
-                
-            estimated_fuel_rate = None
-            if fuel_type == None or fuel_type == 'Gasoline':
-                grams_per_second = air_intake.magnitude * KPA_TO_GRAMS_PER_SECOND_CONSTANT * GASOLINE_AFR
-                estimated_fuel_rate = (grams_per_second * 3600) / GASOLINE_DENSITY
-            elif fuel_type == 'Ethanol':
-                grams_per_second = air_intake.magnitude * KPA_TO_GRAMS_PER_SECOND_CONSTANT * ETHANOL_AFR
-                estimated_fuel_rate = (grams_per_second * 3600) / ETHANOL_DENSITY
+                # Calculate litres per hour using air intakeelse:
 
-            # Calculate fuel efficiency
-            load = load.magnitude if load != None else 1
-            if fuel_rate == None:
-                fuel_rate = estimated_fuel_rate if estimated_fuel_rate != None else 1
-            fuel_efficiency = speed.magnitude * load / fuel_rate
-            read = {
-                'time': time.strftime("%H:%M:%S", time.localtime()),
-                'data': {
-                    'Run Time': {
-                        "magnitude": run_time.magnitude,
-                        "unit": str(run_time.units),
-                        "string": str(run_time)
-                    },
-                    'Fuel Type': str(fuel_type),
-                    'Throttle': {
-                        "magnitude": throttle.magnitude,
-                        "unit": str(throttle.units),
-                        "string": str(throttle)
-                    },
-                    'Air Intake': {
-                        "magnitude": air_intake.magnitude,
-                        "unit": str(air_intake.units),
-                        "string": str(air_intake)
-                    },
-                    'RPM': {
-                        "magnitude": rpm.magnitude,
-                        "unit": str(rpm.units),
-                        "string": str(rpm)
-                    },
-                    'Speed': {
-                        "magnitude": speed.magnitude,
-                        "unit": str(speed.units),
-                        "string": str(speed)
-                    },
-                    'Ethanol %': ethanol.magnitude if ethanol else 'N/A',
-                    'Fuel Efficiency': fuel_efficiency
+                estimated_fuel_rate = None
+                if fuel_type == None or fuel_type == 'Gasoline':
+                    grams_per_second = air_intake.magnitude * KPA_TO_GRAMS_PER_SECOND_CONSTANT * GASOLINE_AFR
+                    estimated_fuel_rate = (grams_per_second * 3600) / GASOLINE_DENSITY
+                elif fuel_type == 'Ethanol':
+                    grams_per_second = air_intake.magnitude * KPA_TO_GRAMS_PER_SECOND_CONSTANT * ETHANOL_AFR
+                    estimated_fuel_rate = (grams_per_second * 3600) / ETHANOL_DENSITY
+
+                # Calculate fuel efficiency
+                load = load.magnitude if load != None else 1
+                if fuel_rate == None:
+                    fuel_rate = estimated_fuel_rate if estimated_fuel_rate != None else 1
+                fuel_efficiency = speed.magnitude * load / fuel_rate
+                read = {
+                    'time': time.strftime("%H:%M:%S", time.localtime()),
+                    'data': {
+                        'Run Time': {
+                            "magnitude": run_time.magnitude,
+                            "unit": str(run_time.units),
+                            "string": str(run_time)
+                        },
+                        'Fuel Type': str(fuel_type),
+                        'Throttle': {
+                            "magnitude": throttle.magnitude,
+                            "unit": str(throttle.units),
+                            "string": str(throttle)
+                        },
+                        'Air Intake': {
+                            "magnitude": air_intake.magnitude,
+                            "unit": str(air_intake.units),
+                            "string": str(air_intake)
+                        },
+                        'RPM': {
+                            "magnitude": rpm.magnitude,
+                            "unit": str(rpm.units),
+                            "string": str(rpm)
+                        },
+                        'Speed': {
+                            "magnitude": speed.magnitude,
+                            "unit": str(speed.units),
+                            "string": str(speed)
+                        },
+                        'Ethanol %': ethanol.magnitude if ethanol else 'N/A',
+                        'Fuel Efficiency': fuel_efficiency
+                    }
                 }
-            }
-            yield "<script> document.body.innerHTML = ''</script>"
-            yield str(read)
-            time.sleep(0.5)  # 0.5-second interval
+                yield "<script> document.body.innerHTML = ''</script>"
+                yield str(read)
+                time.sleep(0.2)  # 0.5-second interval
+            except:
+                print("Error while reading data")
+                return
     return Response(generate_data(), mimetype='text/html')
 
 if __name__ == '__main__':
