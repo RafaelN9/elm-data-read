@@ -2,23 +2,20 @@
 
 ## 1. Como usar?
 
-Para usar o programa, intale python e pip em sua máquina e execute o seguinte comando para instalar as dependências do projeto:
+Instale [python](https://www.python.org/downloads/) e [flutter](https://docs.flutter.dev/get-started/install)
+
+Conecte o leitor OBD2 via USB
+
+Para usar o programa, ative a biblioteca python e execute a API:
 
 ```sh
-    pip install -r requirements.txt
+    source .venv/bin/activate
+    python -m app "$(ls /dev/tty.usb* | grep -E 'serial')" # para MacOS
 ```
 
-Caso não tenha um dispositivo ELM e um veículo à disposição, é possível utilizar um emulador executando os comandos:
+Em seguida execute o aplicativo flutter:
 
 ```sh
-    python3 -m pip install git+https://github.com/ircama/ELM327-emulator #para instalar
-    elm #para executar o emulador
-```
-
-Durante a execução ele exibe qual porta está conectada (usando linux, a porta padrão é: "/dev/pts/2")
-
-Execute o script usando o comando:
-
-```sh
-    python obd-test.py
+    cd app
+    flutter run
 ```
