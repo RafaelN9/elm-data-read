@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:app/models/CarData.dart';
@@ -58,7 +60,7 @@ class _AppState extends State<App> {
                                 percentage: data.throttle.magnitude,
                                 innerText:
                                     '${data.throttle.magnitude.toStringAsFixed(0)}%',
-                                label: 'Throttle'),
+                                label: 'Acelerador'),
                             // Display the speed as a half pie chart
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -78,10 +80,10 @@ class _AppState extends State<App> {
                             // Display the fuel efficiency as a large bar
                             LargeBar(
                                 percentage: data.fuelEfficiency,
-                                label: 'Fuel Efficiency'),
+                                label: 'Eficiência de combustível'),
                             // Display the runtime converting the magnitude as time duration
                             Text(
-                              'Engine Runtime: ${Duration(seconds: data.runTime.magnitude.toInt()).toString().split('.').first}',
+                              'Tempo: ${Duration(seconds: data.runTime.magnitude.toInt()).toString().split('.').first}',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,

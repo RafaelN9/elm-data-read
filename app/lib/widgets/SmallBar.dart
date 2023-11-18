@@ -10,6 +10,7 @@ class SmallBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
         Text(
@@ -21,20 +22,20 @@ class SmallBar extends StatelessWidget {
         ),
         Container(
           margin: const EdgeInsets.all(16),
-          height: 20,
+          height: 40,
           width: 300,
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: cs.onPrimaryContainer,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Stack(
             children: [
               // Display the percentage as a bar
               Container(
-                height: 20,
+                height: 40,
                 width: 300 * percentage / 100,
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: cs.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
@@ -42,9 +43,10 @@ class SmallBar extends StatelessWidget {
               Center(
                 child: Text(
                   innerText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    color: cs.onPrimary,
                   ),
                 ),
               ),

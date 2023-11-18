@@ -5,10 +5,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 Future main() async {
   await dotenv.load(fileName: "assets/.env");
 
-  runApp(MainApp());
+  runApp(const MainApp());
 }
 
-const APP_TITLE = "ICE Monitor";
+const kAppTitles = "DriverAdvisor";
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
@@ -16,13 +16,16 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: APP_TITLE,
+      title: kAppTitles,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.orange,
+          brightness: Brightness.dark,
+        ),
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text(APP_TITLE),
+          title: const Text(kAppTitles),
         ),
         body: const App(),
       ),

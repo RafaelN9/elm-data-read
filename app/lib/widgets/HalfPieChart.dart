@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 class HalfPieChartPainter extends CustomPainter {
   // Create a custom painter to draw a half pie chart that is aligned horizontally and the arc upwards
   final double percentage;
+  final ColorScheme cs;
 
-  HalfPieChartPainter({required this.percentage});
+  HalfPieChartPainter({
+    required this.percentage,
+    required this.cs,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     // Draw the background
     Paint paint = Paint()
-      ..color = Colors.grey[300]!
+      ..color = cs.onPrimaryContainer
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10;
@@ -28,7 +32,7 @@ class HalfPieChartPainter extends CustomPainter {
 
     // Draw the foreground
     paint = Paint()
-      ..color = Colors.green
+      ..color = cs.primary
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10;
@@ -84,6 +88,7 @@ class HalfPieChart extends StatelessWidget {
                 width: 100,
                 child: CustomPaint(
                   painter: HalfPieChartPainter(
+                    cs: Theme.of(context).colorScheme,
                     percentage: percentage,
                   ),
                 ),
