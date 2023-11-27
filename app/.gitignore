@@ -49,4 +49,5 @@ app.*.map.json
 analysis_options.yaml
 pubspec.lock
 
-.vscode*
+.vscode
+**/__pycache__/

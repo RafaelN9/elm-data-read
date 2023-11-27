@@ -1,6 +1,9 @@
 from flask import Flask, Response
-from obd import OBDStatus, commands, OBD, Async
+import obd
+from obd import OBD, OBDStatus, Unit, commands
 import time, sys
+
+obd.logger.setLevel(obd.logging.DEBUG) # enables all debug information
 
 app = Flask(__name__)
 port = "/dev/pts/1"
@@ -8,15 +11,11 @@ port = "/dev/pts/1"
 # Stream the data using Flask
 @app.route('/stream')
 def stream_data():
-    ETHANOL_AFR = 9.8
-    ETHANOL_DENSITY = 789.45
-    GASOLINE_AFR = 14.7
-    GASOLINE_DENSITY = 748.9
-    KPA_TO_GRAMS_PER_SECOND_CONSTANT = 340.29
 
     pid_mapping = {
         'Run Time': commands.RUN_TIME,
         'Fuel Type': commands.FUEL_TYPE,
+        'Fuel Pressure': commands.FUEL_PRESSURE,
         'Throttle': commands.THROTTLE_POS,
         'MAF': commands.MAF,
         'RPM': commands.RPM,
@@ -25,11 +24,17 @@ def stream_data():
         'Fuel Rate': commands.FUEL_RATE,
         'Load %': commands.ENGINE_LOAD,
         'Intake Pressure': commands.INTAKE_PRESSURE,
+        'Fuel Trim': [
+            commands.SHORT_FUEL_TRIM_1,
+            commands.SHORT_FUEL_TRIM_2,
+            commands.SHORT_O2_TRIM_B1,
+            commands.SHORT_O2_TRIM_B2,
+        ]
     }
     try:
 
         # Connect to the OBD-II adapter
-        connection = OBD(port)
+        connection = OBD(portstr=port, baudrate=9600, fast=False, timeout=1)
         if connection.status() == OBDStatus.NOT_CONNECTED:
             print("Failed to connect to the OBD-II adapter")
             exit()
@@ -58,24 +63,9 @@ def stream_data():
                 rpm = run_command(connection, pid_mapping['RPM'])
                 speed = run_command(connection, pid_mapping['Speed'])
                 ethanol = run_command(connection, pid_mapping['Ethanol %'])
-                fuel_rate = run_command(connection, pid_mapping['Fuel Rate'])
-                load = run_command(connection, pid_mapping['Load %'])
+                fuel_pressure = run_command(connection, pid_mapping['Fuel Pressure'])
 
-                # Calculate litres per hour using air intakeelse:
-
-                estimated_fuel_rate = None
-                if fuel_type == None or fuel_type == 'Gasoline':
-                    grams_per_second = air_intake.magnitude * KPA_TO_GRAMS_PER_SECOND_CONSTANT * GASOLINE_AFR
-                    estimated_fuel_rate = (grams_per_second * 3600) / GASOLINE_DENSITY
-                elif fuel_type == 'Ethanol':
-                    grams_per_second = air_intake.magnitude * KPA_TO_GRAMS_PER_SECOND_CONSTANT * ETHANOL_AFR
-                    estimated_fuel_rate = (grams_per_second * 3600) / ETHANOL_DENSITY
-
-                # Calculate fuel efficiency
-                load = load.magnitude if load != None else 1
-                if fuel_rate == None:
-                    fuel_rate = estimated_fuel_rate if estimated_fuel_rate != None else 1
-                fuel_efficiency = speed.magnitude * load / fuel_rate
+                fuel_efficiency = speed.magnitude * 1.040 / fuel_pressure.magnitude
                 read = {
                     'time': time.strftime("%H:%M:%S", time.localtime()),
                     'data': {
@@ -112,7 +102,8 @@ def stream_data():
                 yield "<script> document.body.innerHTML = ''</script>"
                 yield str(read)
                 time.sleep(0.2)  # 0.5-second interval
-            except:
+            except Exception as e:
+                print(e)
                 print("Error while reading data")
                 return
     return Response(generate_data(), mimetype='text/html')

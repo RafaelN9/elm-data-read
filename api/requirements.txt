@@ -1,3 +1,4 @@
-obd==0.7.1
+obd==0.6.1
 Flask
 Jinja2
+ELM327-emulator
